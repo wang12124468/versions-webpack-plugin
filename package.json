@@ -1,0 +1,9 @@
+{
+  "name": "version-webpack-plugin",
+  "version": "0.0.1",
+  "description": "create version file",
+  "main": "index.js",
+  "repository": "none",
+  "author": "xiaoyong",
+  "license": "MIT"
+}
