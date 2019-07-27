@@ -1,5 +1,5 @@
 {
-  "name": "version-webpack-plugin",
+  "name": "versions-webpack-plugin",
   "version": "0.0.1",
   "description": "create version file",
   "main": "index.js",
