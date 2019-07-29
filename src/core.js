@@ -6,23 +6,26 @@ var getTemplate = utils.getTemplate;
 var getVersionsStr = utils.getVersionsStr;
 
 
+var DEFAULT_FILE_NAME = 'version.txt';
+
 function VersionWebpackPlugin(options) {
     var _options = Object.assign({ gitVersion: true }, options);
     this.git = _options.git;
     this.basic = _options.basic;
     this.callback = _options.callback;
+    this.fileName = _options.fileName || DEFAULT_FILE_NAME;
     this.versions = [];
 }
 
-function createVersions(compilation, version) {
-    compilation.assets['version.txt'] = {
+function createAsset(str) {
+    return {
         source: function () {
-            return version;
+            return str;
         },
         size: function () {
-            return version.length;
+            return str.length;
         }
-    }
+    };
 }
 
 VersionWebpackPlugin.prototype.apply = function (compiler) {
@@ -47,11 +50,12 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
 
 
         if(typeof _this.callback === 'function') {
-            var _versions = _this.callback(versions);
+            var _versions = _this.callback(versions.slice());
             versions = _versions || versions;
         }
 
-        createVersions(compilation, getVersionsStr(versions));
+        var asset = createAsset(getVersionsStr(versions));
+        compilation.assets[_this.fileName] = asset;
         callback();
     })
 }
