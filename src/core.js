@@ -25,7 +25,7 @@ function createVersions(compilation, version) {
     }
 }
 
-VersionWebpackPlugin.prototype.apply = function (compiler) {
+VersionWebpackPlugin.prototype.apply = async function (compiler) {
     var _this = this;
     compiler.plugin('emit', function (compilation, callback) {
         var versions = [];
@@ -40,19 +40,19 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
             versions.push(template);
         }
 
-        if (_this.git) {
-            getGitVersion().then(function (infos) {
-                var template = getTemplate();
-                template.title = 'Git';
-                template.infos = infos;
-                versions.push(template);
-                createVersions(compilation, getVersionsStr(versions));
-                callback();
-            });
-        } else {
-            createVersions(compilation, getVersionsStr(versions));
-            callback();
+        if(_this.git) {
+            var template = await getGitVersion();
+            versions.push(template);
         }
+
+
+        if(typeof _this.callback === 'function') {
+            var _versions = _this.callback(versions);
+            versions = _versions || versions;
+        }
+
+        createVersions(compilation, getVersionsStr(versions));
+        callback();
     })
 }
 

@@ -26,21 +26,22 @@ function getGitVersion(n) {
     return new Promise(resolve => {
         n = n || 1;
         process.exec('git log -n ' + n, function (error, stdout, stderr) {
-            var infos = [];
+            var template = getTemplate();
+            template.title = 'Git';
             if (stdout) {
                 var str = stdout.split('\n')[0] || '';
                 var commitId = str.replace('commit ');
                 if (commitId) {
-                    infos.push({ key: 'commit', value: commitId });
+                    template.infos.push({ key: 'commit', value: commitId });
                 }
             }
-            resolve(infos);
+            resolve(template);
         });
     })
 }
 
 function getDateVersion() {
-    return format(new Date(), 'yyyy-M-d h:m:s');
+    return format(new Date(), 'yyyy-MM-dd hh:mm:ss');
 }
 
 function addColon(str) {
@@ -59,9 +60,9 @@ function getVersionsStr(versions, callback) {
 
     return versions.map(function (version) {
         var res = '';
-        var key = version.key || '';
+        var title = version.title || '';
         var infos = version.infos || [];
-        res += addColon(key);
+        res += addColon(title);
         res += '\n';
         var infosStr = infos.map(function (info) {
             var res = '';
