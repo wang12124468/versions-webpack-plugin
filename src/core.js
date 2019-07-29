@@ -1,34 +1,57 @@
-var getGitVersion = require('./utils').getGitVersion;
+var utils = require('./utils');
+var getGitVersion = utils.getGitVersion;
+var getDateVersion = utils.getDateVersion;
+var getInfo = utils.getInfo;
+var getTemplate = utils.getTemplate;
+var getVersionsStr = utils.getVersionsStr;
 
-function VersionWebpackPlugin (options) {
+
+function VersionWebpackPlugin(options) {
     var _options = Object.assign({ gitVersion: true }, options);
-    this.gitVersion = _options.gitVersion;
+    this.git = _options.git;
+    this.basic = _options.basic;
+    this.callback = _options.callback;
+    this.versions = [];
 }
 
-function handle(compilation, version, callback) {
+function createVersions(compilation, version) {
     compilation.assets['version.txt'] = {
-        source: function() {
+        source: function () {
             return version;
         },
-        size: function() {
+        size: function () {
             return version.length;
         }
     }
-    callback();
 }
 
-VersionWebpackPlugin.prototype.apply = function(compiler) {
+VersionWebpackPlugin.prototype.apply = function (compiler) {
     var _this = this;
-    compiler.plugin('emit', function(compilation, callback) {
-        var version = '';
+    compiler.plugin('emit', function (compilation, callback) {
+        var versions = [];
+        if (_this.basic) {
+            var template = getTemplate();
+            template.title = 'Basic'
+            var info = getInfo();
+            info.key = 'Build time';
+            info.value = getDateVersion();
+            template.infos.push(info);
 
-        if(_this.gitVersion) {
-            getGitVersion().then(function (values) {
-                version += values.stdout;
-                handle(compilation, version, callback);
+            versions.push(template);
+        }
+
+        if (_this.git) {
+            getGitVersion().then(function (infos) {
+                var template = getTemplate();
+                template.title = 'Git';
+                template.infos = infos;
+                versions.push(template);
+                createVersions(compilation, getVersionsStr(versions));
+                callback();
             });
         } else {
-            handle(compilation, version, callback);
+            createVersions(compilation, getVersionsStr(versions));
+            callback();
         }
     })
 }
