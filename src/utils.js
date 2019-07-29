@@ -1,7 +1,7 @@
 var process = require('child_process');
 
 function format(date, formatStr) {
-    var formatDate = '';
+    var formatStr = '';
     var o = {
         "M+": date.getMonth() + 1,                 //月份   
         "d+": date.getDate(),                    //日   
@@ -16,10 +16,10 @@ function format(date, formatStr) {
     }
     for (var k in o) {
         if (new RegExp("(" + k + ")").test(formatStr)) {
-            formatDate = formatStr.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            formatStr = formatStr.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
         }
     }
-    return formatDate;
+    return formatStr;
 }
 
 function getGitVersion(n) {
@@ -45,7 +45,7 @@ function getDateVersion() {
 }
 
 function addColon(str) {
-    return /:：/.test(str) ? str : str + ': ';
+    return /:：/.test(str) ? str : (str + ': ');
 }
 
 function getVersionsStr(versions, callback) {
