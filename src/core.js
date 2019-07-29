@@ -25,9 +25,9 @@ function createVersions(compilation, version) {
     }
 }
 
-VersionWebpackPlugin.prototype.apply = async function (compiler) {
+VersionWebpackPlugin.prototype.apply = function (compiler) {
     var _this = this;
-    compiler.plugin('emit', function (compilation, callback) {
+    compiler.plugin('emit', async function (compilation, callback) {
         var versions = [];
         if (_this.basic) {
             var template = getTemplate();
