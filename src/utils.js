@@ -1,44 +1,46 @@
 var process = require('child_process');
 
 function format(date, fmt) {
-    var o = {   
-        "M+" : date.getMonth()+1,                 //月份   
-        "d+" : date.getDate(),                    //日   
-        "h+" : date.getHours(),                   //小时   
-        "m+" : date.getMinutes(),                 //分   
-        "s+" : date.getSeconds(),                 //秒   
-        "q+" : Math.floor((date.getMonth()+3)/3), //季度   
-        "S"  : date.getMilliseconds()             //毫秒   
-      };   
-      if(/(y+)/.test(fmt))   
-        fmt=fmt.replace(RegExp.$1, (date.getFullYear()+"").substr(4 - RegExp.$1.length));   
-      for(var k in o)   
-        if(new RegExp("("+ k +")").test(fmt))   
-      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));   
-      return fmt;   
+    var o = {
+        "M+": date.getMonth() + 1,                 //月份   
+        "d+": date.getDate(),                    //日   
+        "h+": date.getHours(),                   //小时   
+        "m+": date.getMinutes(),                 //分   
+        "s+": date.getSeconds(),                 //秒   
+        "q+": Math.floor((date.getMonth() + 3) / 3), //季度   
+        "S": date.getMilliseconds()             //毫秒   
+    };
+    if (/(y+)/.test(fmt))
+        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o)
+        if (new RegExp("(" + k + ")").test(fmt))
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
 }
 
-function getGitVersion(n) {
+function getGitVersion({ commit, author, date } = {}) {
     return new Promise(resolve => {
-        n = n || 1;
-        process.exec('git log -n ' + n, function (error, stdout, stderr) {
-            var template = getTemplate();
-            template.title = 'Git';
-            if (stdout) {
-                var str = stdout.split('\n')[0] || '';
-                var commitId = str.replace('commit ', '');
-                if (commitId) {
-                    template.infos.push({ key: 'commit', value: commitId });
-                }
-            }
-            console.log(template);
-            resolve(template);
-        });
+
+        const template = getTemplate();
+        template.title = 'Git';
+
+        const [ c, a, d ] = process.execSync('git log -n 1 --pretty="%H,%an<%aE>,%ad"')
+                .toString().split(',');
+        if(commit) {
+            template.infos.push({ key: 'commit', value: c });
+        }
+        if(author) {
+            template.infos.push({ key: 'author', value: a });
+        }
+        if(date) {
+            template.infos.push({ key: 'date', value: d });
+        }
+        
+        resolve(template);
     })
 }
 
 function getDateVersion() {
-    console.log(1);
     return format(new Date(), 'yyyy-MM-dd hh:mm:ss');
 }
 
@@ -48,7 +50,7 @@ function addColon(str) {
 
 function getVersionsStr(versions, callback) {
     if (typeof callback === 'function') {
-        var result = callback(versions);
+        const result = callback(versions);
         if (!Array.isArray(result)) {
             return result + '';
         }
@@ -56,19 +58,19 @@ function getVersionsStr(versions, callback) {
         versions = result;
     }
 
-    return versions.map(function (version) {
-        var res = '';
-        var title = version.title || '';
-        var infos = version.infos || [];
+    return versions.map(function ({ title = '', infos = [] }) {
+        let res = '';
         res += addColon(title);
         res += '\n';
-        var infosStr = infos.map(function (info) {
-            var res = '';
-            var key = addColon(info.key || '');
-            var value = info.value || '';
+        const infosStr = infos.map(function ({ key = '', value = '' }) {
+            let res = '';
             res += '\t';
             res += addColon(key);
-            res += value;
+            if(Array.isArray(value)) {
+                value.map(i => res+= `\n\t\t${i}`)
+            } else {
+                res += value;
+            }
             return res;
         }).join('\n');
         res += infosStr;
@@ -90,11 +92,5 @@ function getInfo() {
     }
 }
 
-module.exports.getGitVersion = getGitVersion;
-module.exports.getDateVersion = getDateVersion;
-module.exports.getTemplate = getTemplate;
-module.exports.getInfo = getInfo;
-module.exports.getVersionsStr = getVersionsStr;
-
-getGitVersion();
+module.exports = { getGitVersion, getDateVersion, getTemplate, getInfo, getVersionsStr };
 

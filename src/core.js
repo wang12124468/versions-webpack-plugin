@@ -1,20 +1,27 @@
-var utils = require('./utils');
-var getGitVersion = utils.getGitVersion;
-var getDateVersion = utils.getDateVersion;
-var getInfo = utils.getInfo;
-var getTemplate = utils.getTemplate;
-var getVersionsStr = utils.getVersionsStr;
+const { getGitVersion, getDateVersion, getInfo, getTemplate, getVersionsStr } = require('./utils');
 
 
-var DEFAULT_FILE_NAME = 'version.txt';
+const DEFAULT_FILE_NAME = 'version.txt';
 
 function VersionWebpackPlugin(options) {
-    var _options = Object.assign({ gitVersion: true }, options);
-    this.git = _options.git;
-    this.basic = _options.basic;
+    const _options = Object.assign({ git: true, basic: true }, options);
+    this.git = getOptions(_options.git, { commit: true, author: false, date: false });
+    this.basic = getOptions(_options.basic, { date: true, filelist: false });
     this.callback = _options.callback;
-    this.fileName = _options.fileName || DEFAULT_FILE_NAME;
+    this.filename = _options.filename || DEFAULT_FILE_NAME;
     this.versions = [];
+}
+
+function getOptions(value, defaults) {
+    let o = null;
+    if(value === true) {
+        o = defaults;
+    } else if(value === false) {
+        o = false;
+    } else {
+        o = Object.assign(defaults, value);
+    }
+    return o;
 }
 
 function createAsset(str) {
@@ -29,33 +36,41 @@ function createAsset(str) {
 }
 
 VersionWebpackPlugin.prototype.apply = function (compiler) {
-    var _this = this;
+    const _this = this;
+    
     compiler.plugin('emit', async function (compilation, callback) {
-        var versions = [];
+        let versions = [];
         if (_this.basic) {
-            var template = getTemplate();
+            const template = getTemplate();
             template.title = 'Basic'
-            var info = getInfo();
-            info.key = 'Build time';
-            info.value = getDateVersion();
-            template.infos.push(info);
-
+            if(_this.basic.date) {
+                const info = getInfo();
+                info.key = 'build date';
+                info.value = getDateVersion();
+                template.infos.push(info);
+            }
+            if(_this.basic.filelist) {
+                var info = getInfo();
+                info.key = 'filelist';
+                info.value = Object.keys(compilation.assets).map(name => `- ${name}`);
+                template.infos.push(info);
+            }
             versions.push(template);
         }
 
         if(_this.git) {
-            var template = await getGitVersion();
+            const template = await getGitVersion(_this.git);
             versions.push(template);
         }
 
 
         if(typeof _this.callback === 'function') {
-            var _versions = _this.callback(versions.slice());
+            const _versions = _this.callback(versions.slice());
             versions = _versions || versions;
         }
 
-        var asset = createAsset(getVersionsStr(versions));
-        compilation.assets[_this.fileName] = asset;
+        const asset = createAsset(getVersionsStr(versions));
+        compilation.assets[_this.filename] = asset;
         callback();
     })
 }
