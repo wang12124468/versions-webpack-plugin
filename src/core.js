@@ -1,6 +1,5 @@
 const { getGitVersion, getDateVersion, getInfo, getTemplate, getVersionsStr } = require('./utils');
 
-
 const DEFAULT_FILE_NAME = 'version.txt';
 
 function VersionWebpackPlugin(options) {
@@ -24,22 +23,24 @@ function getOptions(value, defaults) {
     return o;
 }
 
-function createAsset(str) {
-    return {
-        source: function () {
-            return str;
-        },
-        size: function () {
-            return str.length;
-        }
-    };
-}
+// function createAsset(str) {
+//     return {
+//         source: function () {
+//             return str;
+//         },
+//         size: function () {
+//             return str.length;
+//         }
+//     };
+// }
 
 VersionWebpackPlugin.prototype.apply = function (compiler) {
     const _this = this;
     
-    compiler.plugin('emit', async function (compilation, callback) {
-        let versions = [];
+    compiler.hooks.done.tapPromise(VersionWebpackPlugin.name, async function(stats) {
+        const compilation = stats.compilation;
+        const versions = [];
+
         if (_this.basic) {
             const template = getTemplate();
             template.title = 'Basic'
@@ -63,16 +64,20 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
             versions.push(template);
         }
 
-
         if(typeof _this.callback === 'function') {
             const _versions = _this.callback(versions.slice());
             versions = _versions || versions;
         }
 
-        const asset = createAsset(getVersionsStr(versions));
-        compilation.assets[_this.filename] = asset;
-        callback();
-    })
+        await new Promise((resolve) => {
+            compiler.outputFileSystem.writeFile(`${compiler.outputPath}/${DEFAULT_FILE_NAME}`, getVersionsStr(versions), function(err) {
+                if(err) {
+                    console.error(err);
+                }
+                resolve();
+            });
+        });
+    });
 }
 
 module.exports = VersionWebpackPlugin;
