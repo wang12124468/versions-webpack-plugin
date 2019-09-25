@@ -37,7 +37,7 @@ function getOptions(value, defaults) {
 VersionWebpackPlugin.prototype.apply = function (compiler) {
     const _this = this;
     
-    compiler.plugin('done', async function(stats, callback) {
+    compiler.hooks.done.tapPromise(VersionWebpackPlugin.name, async function(stats) {
         const compilation = stats.compilation;
         const versions = [];
 
@@ -77,8 +77,6 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
                 resolve();
             });
         });
-
-        callback && callback();
     });
 }
 

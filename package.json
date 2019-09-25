@@ -1,6 +1,6 @@
 {
   "name": "versions-webpack-plugin",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "create version file",
   "main": "index.js",
   "repository": "git@github.com:wang12124468/versions-webpack-plugin.git",

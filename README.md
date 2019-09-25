@@ -1,5 +1,7 @@
 # Versions Webpack Plugin
 
+> If your webpack < 4, please use the version of 1.x with the same configuration.
+
 Plugin that create informations of versions.
 
 ## Installing
