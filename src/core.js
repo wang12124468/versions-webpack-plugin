@@ -61,7 +61,7 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
 
         if(_this.git) {
             const template = await getGitVersion(_this.git);
-            versions.push(template);
+            template && versions.push(template);
         }
 
         if(typeof _this.callback === 'function') {

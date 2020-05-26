@@ -1,6 +1,6 @@
 {
   "name": "versions-webpack-plugin",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "create version file",
   "keywords": [
     "webpack",

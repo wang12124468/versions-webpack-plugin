@@ -21,22 +21,28 @@ function format(date, fmt) {
 function getGitVersion({ commit, author, date } = {}) {
     return new Promise(resolve => {
 
-        const template = getTemplate();
-        template.title = 'Git';
+        try {
+            const template = getTemplate();
+            template.title = 'Git';
 
-        const [ c, a, d ] = process.execSync('git log -n 1 --pretty="%H,%an<%aE>,%ad"')
-                .toString().split(',');
-        if(commit) {
-            template.infos.push({ key: 'commit', value: c });
+            const [ c, a, d ] = process.execSync('git log -n 1 --pretty="%H,%an<%aE>,%ad"')
+                    .toString().split(',');
+            if(commit) {
+                template.infos.push({ key: 'commit', value: c });
+            }
+            if(author) {
+                template.infos.push({ key: 'author', value: a });
+            }
+            if(date) {
+                template.infos.push({ key: 'date', value: d });
+            }
+            
+            resolve(template);
+        } catch (error) {
+            console.warn('Git commit informations fail:\n');
+            console.warn(error);
+            resolve(null);
         }
-        if(author) {
-            template.infos.push({ key: 'author', value: a });
-        }
-        if(date) {
-            template.infos.push({ key: 'date', value: d });
-        }
-        
-        resolve(template);
     })
 }
 
