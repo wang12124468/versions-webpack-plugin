@@ -66,7 +66,7 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
 
         await new Promise((resolve) => {
             compiler.outputFileSystem.writeFile(
-                `${compiler.outputPath}/${DEFAULT_FILE_NAME}`,
+                `${compiler.outputPath}/${_this.filename}`,
                 getVersionsStr(versions.slice(), _this.callback),
                 function (err) {
                     if (err) {
