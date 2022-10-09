@@ -33,7 +33,7 @@ declare namespace VersionsWebpackPlugin {
     }
     
     interface Options {
-        fileName?: string;
+        filename?: string;
         basic?: Basic;
         git?: Git;
         callback?: Callback;
