@@ -13,9 +13,9 @@ function VersionWebpackPlugin(options) {
 
 function getOptions(value, defaults) {
     let o = null;
-    if(value === true) {
+    if (value === true) {
         o = defaults;
-    } else if(value === false) {
+    } else if (value === false) {
         o = false;
     } else {
         o = Object.assign(defaults, value);
@@ -36,21 +36,21 @@ function getOptions(value, defaults) {
 
 VersionWebpackPlugin.prototype.apply = function (compiler) {
     const _this = this;
-    
-    compiler.hooks.done.tapPromise(VersionWebpackPlugin.name, async function(stats) {
+
+    compiler.hooks.done.tapPromise(VersionWebpackPlugin.name, async function (stats) {
         const compilation = stats.compilation;
         const versions = [];
 
         if (_this.basic) {
             const template = getTemplate();
             template.title = 'Basic'
-            if(_this.basic.date) {
+            if (_this.basic.date) {
                 const info = getInfo();
                 info.key = 'build date';
                 info.value = getDateVersion();
                 template.infos.push(info);
             }
-            if(_this.basic.filelist) {
+            if (_this.basic.filelist) {
                 var info = getInfo();
                 info.key = 'filelist';
                 info.value = Object.keys(compilation.assets).map(name => `- ${name}`);
@@ -59,23 +59,21 @@ VersionWebpackPlugin.prototype.apply = function (compiler) {
             versions.push(template);
         }
 
-        if(_this.git) {
+        if (_this.git) {
             const template = await getGitVersion(_this.git);
             template && versions.push(template);
         }
 
-        if(typeof _this.callback === 'function') {
-            const _versions = _this.callback(versions.slice());
-            versions = _versions || versions;
-        }
-
         await new Promise((resolve) => {
-            compiler.outputFileSystem.writeFile(`${compiler.outputPath}/${DEFAULT_FILE_NAME}`, getVersionsStr(versions), function(err) {
-                if(err) {
-                    console.error(err);
-                }
-                resolve();
-            });
+            compiler.outputFileSystem.writeFile(
+                `${compiler.outputPath}/${DEFAULT_FILE_NAME}`,
+                getVersionsStr(versions.slice(), _this.callback),
+                function (err) {
+                    if (err) {
+                        console.error(err);
+                    }
+                    resolve();
+                });
         });
     });
 }
